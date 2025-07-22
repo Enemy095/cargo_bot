@@ -1,8 +1,8 @@
 package org.cargobot.cargobotservice.bot.commands.admin;
 
 import lombok.RequiredArgsConstructor;
-import org.cargobot.cargobotservice.bot.CargoBot;
 import org.cargobot.cargobotservice.bot.commands.CommandHandler;
+import org.cargobot.cargobotservice.service.BotMessageService;
 import org.cargobot.cargobotservice.service.TariffService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -12,7 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @RequiredArgsConstructor
 public class AdminCommandHandler implements CommandHandler {
 
-    private final CargoBot bot;
+    private final BotMessageService messageService;
     private final TariffService tariffService;
 
     @Value("${admin.id}")
@@ -31,17 +31,17 @@ public class AdminCommandHandler implements CommandHandler {
         String text = update.getMessage().getText();
         System.out.println(chatId);
         if (!chatId.equals(adminId)) {
-            bot.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
+            messageService.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
             return;
         }
 
         if (text.equals("/admin")) {
             String message = getFirstMsg();
-            bot.sendText(chatId, message);
+            messageService.sendText(chatId, message);
             return;
         }
 
-        bot.sendText(chatId, "Неизвестная команда админа.");
+        messageService.sendText(chatId, "Неизвестная команда админа.");
     }
 
     private String getFirstMsg() {

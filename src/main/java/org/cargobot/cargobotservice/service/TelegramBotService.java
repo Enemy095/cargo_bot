@@ -1,7 +1,6 @@
 package org.cargobot.cargobotservice.service;
 
 import lombok.RequiredArgsConstructor;
-import org.cargobot.cargobotservice.bot.CargoBot;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
@@ -9,17 +8,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMar
 @RequiredArgsConstructor
 public class TelegramBotService {
 
-    private final CargoBot bot;
+    private final BotMessageService messageService;
 
     public void sendText(Long chatId, String text) {
-        bot.sendText(chatId, text);
+        messageService.sendText(chatId, text);
     }
 
     public void sendMessageWithKeyboard(Long chatId, String text, ReplyKeyboardMarkup keyboard) {
-        bot.sendMessageWithKeyboard(chatId, text, keyboard);
+        messageService.sendMessageWithKeyboard(chatId, text, keyboard);
     }
 
     public void removeReplyKeyboard(Long chatId, String message) {
-        bot.removeReplyKeyboard(chatId, message);
+        messageService.removeReplyKeyboard(chatId, message);
     }
 }

@@ -2,11 +2,11 @@ package org.cargobot.cargobotservice.bot.commands.admin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cargobot.cargobotservice.bot.CargoBot;
 import org.cargobot.cargobotservice.bot.commands.CommandHandler;
 import org.cargobot.cargobotservice.dto.TariffDto;
 import org.cargobot.cargobotservice.dto.session.TariffSession;
 import org.cargobot.cargobotservice.entity.states.AdminTariffState;
+import org.cargobot.cargobotservice.service.BotMessageService;
 import org.cargobot.cargobotservice.service.TariffService;
 import org.cargobot.cargobotservice.service.session.TariffSessionService;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CreateCommandHandler implements CommandHandler {
 
-    private final CargoBot bot;
+    private final BotMessageService messageService;
     private final TariffSessionService tariffSessionService;
     private final TariffService tariffService;
 
@@ -43,7 +43,7 @@ public class CreateCommandHandler implements CommandHandler {
         String text = update.getMessage().getText();
         System.out.println(chatId);
         if (!chatId.equals(adminId)) {
-            bot.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
+            messageService.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
             return;
         }
 
@@ -51,7 +51,7 @@ public class CreateCommandHandler implements CommandHandler {
 
         if (text.equalsIgnoreCase("/create")) {
             tariffSession.setState(AdminTariffState.AWAIT_TARIFF_NAME);
-            bot.sendText(chatId, "Введите название тарифа: ");
+            messageService.sendText(chatId, "Введите название тарифа: ");
             return;
         }
         switch (tariffSession.getState()) {
@@ -59,36 +59,36 @@ public class CreateCommandHandler implements CommandHandler {
                 try {
                     tariffSession.setTariffName(text);
                     tariffSession.setState(AdminTariffState.AWAIT_KG_RATE);
-                    bot.sendText(chatId, "Введите цену за киллограмм:");
+                    messageService.sendText(chatId, "Введите цену за киллограмм:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите название тарифа:");
+                    messageService.sendText(chatId, "⛔ Введите название тарифа:");
                 }
             }
             case AWAIT_KG_RATE -> {
                 try {
                     tariffSession.setKgRate(Double.parseDouble(text));
                     tariffSession.setState(AdminTariffState.AWAIT_MIN_PRICE);
-                    bot.sendText(chatId, "Введите минимальную цену:");
+                    messageService.sendText(chatId, "Введите минимальную цену:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    messageService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_MIN_PRICE -> {
                 try {
                     tariffSession.setMinPrice(Double.parseDouble(text));
                     tariffSession.setState(AdminTariffState.AWAIT_CUBIC_CONVERSION);
-                    bot.sendText(chatId, "Введите коэфициент для объемного веса:");
+                    messageService.sendText(chatId, "Введите коэфициент для объемного веса:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    messageService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_CUBIC_CONVERSION -> {
                 try {
                     tariffSession.setCubicConversion(Double.parseDouble(text));
                     tariffSession.setState(AdminTariffState.AWAIT_FRAGILITY);
-                    bot.sendText(chatId, "Введите коэфициент для хрупкого товара в процентах %:");
+                    messageService.sendText(chatId, "Введите коэфициент для хрупкого товара в процентах %:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    messageService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_FRAGILITY -> {
@@ -96,9 +96,9 @@ public class CreateCommandHandler implements CommandHandler {
                     tariffSession.setFragility(Double.parseDouble(text));
                     tariffSession.setState(AdminTariffState.AWAIT_URGENCY);
                     //ReplyKeyboardMarkup keyboard = createYesNoKeyboard();
-                    bot.sendText(chatId, "Введите коэфициент для срочной доставки в процентах %:");
+                    messageService.sendText(chatId, "Введите коэфициент для срочной доставки в процентах %:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    messageService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_URGENCY -> {
@@ -106,9 +106,9 @@ public class CreateCommandHandler implements CommandHandler {
                     tariffSession.setUrgency(Double.parseDouble(text));
                     ReplyKeyboardMarkup keyboard = createYesNoKeyboard();
                     tariffSession.setState(AdminTariffState.AWAIT_ACTIVE);
-                    bot.sendMessageWithKeyboard(chatId, "Сделать тариф активным:", keyboard);//, keyboard);
+                    messageService.sendMessageWithKeyboard(chatId, "Сделать тариф активным:", keyboard);//, keyboard);
                 } catch (RuntimeException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    messageService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_ACTIVE -> {
@@ -132,16 +132,16 @@ public class CreateCommandHandler implements CommandHandler {
 
                     String resultMessage = tariffService.createTariff(tariffDto);
 
-                    bot.removeReplyKeyboard(chatId, resultMessage);
+                    messageService.removeReplyKeyboard(chatId, resultMessage);
                     log.info("new tariff {}", resultMessage);
                     tariffSessionService.clearUserSession(chatId);
 
                 } catch (RuntimeException e) {
-                    bot.sendText(chatId, """
+                    messageService.sendText(chatId, """
                             ⛔ Ответьте "ДА" или "НЕТ"\s""");
                 }
             }
-            default -> bot.sendText(chatId, "Введите /calc для начала расчёта.");
+            default -> messageService.sendText(chatId, "Введите /calc для начала расчёта.");
         }
     }
 
@@ -152,9 +152,11 @@ public class CreateCommandHandler implements CommandHandler {
     }
 
     private ReplyKeyboardMarkup createYesNoKeyboard() {
-        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
-        keyboard.setResizeKeyboard(true);
-        keyboard.setOneTimeKeyboard(true);
+        ReplyKeyboardMarkup keyboard = ReplyKeyboardMarkup.builder()
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .build();
+
 
         List<KeyboardRow> rows = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();

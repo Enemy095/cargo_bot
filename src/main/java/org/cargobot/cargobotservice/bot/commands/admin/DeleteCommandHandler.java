@@ -1,11 +1,10 @@
 package org.cargobot.cargobotservice.bot.commands.admin;
 
 import lombok.RequiredArgsConstructor;
-import org.cargobot.cargobotservice.bot.CargoBot;
 import org.cargobot.cargobotservice.bot.commands.CommandHandler;
 import org.cargobot.cargobotservice.dto.session.TariffDeleteSession;
-import org.cargobot.cargobotservice.dto.session.TariffSession;
 import org.cargobot.cargobotservice.entity.states.DeleteTariffState;
+import org.cargobot.cargobotservice.service.BotMessageService;
 import org.cargobot.cargobotservice.service.TariffService;
 import org.cargobot.cargobotservice.service.session.TariffDeleteSessionService;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DeleteCommandHandler implements CommandHandler {
 
-    private final CargoBot bot;
+    private final BotMessageService messageService;
     private final TariffService tariffService;
     private final TariffDeleteSessionService tariffDeleteSessionService;
 
@@ -40,7 +39,7 @@ public class DeleteCommandHandler implements CommandHandler {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
         if (!chatId.equals(adminId)) {
-            bot.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
+            messageService.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
             return;
         }
 
@@ -48,7 +47,7 @@ public class DeleteCommandHandler implements CommandHandler {
 
         if (text.equalsIgnoreCase("/delete")) {
             tariffSession.setDeleteState(DeleteTariffState.AWAIT_DELETE);
-            bot.sendText(chatId, "Введите название тарифа: ");
+            messageService.sendText(chatId, "Введите название тарифа: ");
             return;
         }
 
@@ -57,9 +56,9 @@ public class DeleteCommandHandler implements CommandHandler {
                 try {
                     tariffSession.setDeleteState(DeleteTariffState.FINAL_CHOICE);
                     ReplyKeyboardMarkup keyboard = createYesNoKeyboard();
-                    bot.sendMessageWithKeyboard(chatId, "Вы уверены что хотите удалить этот тариф:", keyboard);
+                    messageService.sendMessageWithKeyboard(chatId, "Вы уверены что хотите удалить этот тариф:", keyboard);
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "Введите название тарифа:");
+                    messageService.sendText(chatId, "Введите название тарифа:");
                 }
             }
             case FINAL_CHOICE -> {
@@ -68,12 +67,12 @@ public class DeleteCommandHandler implements CommandHandler {
 
                         tariffService.deleteTariffByName(text);
                         String resultMessage = "⛔ Тариф удален!";
-                        bot.removeReplyKeyboard(chatId, resultMessage);
+                        messageService.removeReplyKeyboard(chatId, resultMessage);
 
                     } else if (text.equalsIgnoreCase("нет")) {
 
                         String resultMessage = "✅ Тариф не был удален!";
-                        bot.removeReplyKeyboard(chatId, resultMessage);
+                        messageService.removeReplyKeyboard(chatId, resultMessage);
 
                     } else {
                         throw new RuntimeException();
@@ -81,11 +80,11 @@ public class DeleteCommandHandler implements CommandHandler {
 
                     tariffDeleteSessionService.clearUserSession(chatId);
                 } catch (RuntimeException e) {
-                    bot.sendText(chatId, """
+                    messageService.sendText(chatId, """
                             Ответьте "ДА" или "НЕТ"\s""");
                 }
             }
-            default -> bot.sendText(chatId, "Введите /calc для начала расчёта.");
+            default -> messageService.sendText(chatId, "Введите /calc для начала расчёта.");
         }
     }
 
@@ -96,9 +95,10 @@ public class DeleteCommandHandler implements CommandHandler {
     }
 
     private ReplyKeyboardMarkup createYesNoKeyboard() {
-        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
-        keyboard.setResizeKeyboard(true);
-        keyboard.setOneTimeKeyboard(true);
+        ReplyKeyboardMarkup keyboard = ReplyKeyboardMarkup.builder()
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .build();
 
         List<KeyboardRow> rows = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();

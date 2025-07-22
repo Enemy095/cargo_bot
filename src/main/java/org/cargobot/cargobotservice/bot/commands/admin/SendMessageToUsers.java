@@ -1,11 +1,9 @@
 package org.cargobot.cargobotservice.bot.commands.admin;
 
 import lombok.RequiredArgsConstructor;
-import org.cargobot.cargobotservice.bot.CargoBot;
 import org.cargobot.cargobotservice.bot.commands.CommandHandler;
 import org.cargobot.cargobotservice.entity.User;
-import org.cargobot.cargobotservice.repository.cash.Cash;
-import org.cargobot.cargobotservice.service.TariffService;
+import org.cargobot.cargobotservice.service.BotMessageService;
 import org.cargobot.cargobotservice.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,7 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Component
 @RequiredArgsConstructor
 public class SendMessageToUsers implements CommandHandler {
-    private final CargoBot bot;
+    private final BotMessageService messageService;
     private final UserService userService;
 
     @Value("${admin.id}")
@@ -32,15 +30,15 @@ public class SendMessageToUsers implements CommandHandler {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
         System.out.println(chatId);
-        if(!chatId.equals(adminId)) {
-            bot.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
+        if (!chatId.equals(adminId)) {
+            messageService.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
             return;
         }
 
-        for (User user: userService.getUsers()){
-            bot.sendText(Long.parseLong(user.getChatId()), "Hello");
+        for (User user : userService.getUsers()) {
+            messageService.sendText(Long.parseLong(user.getChatId()), "Hello");
         }
 
-        bot.sendText(chatId, "Неизвестная команда админа.");
+        messageService.sendText(chatId, "Неизвестная команда админа.");
     }
 }

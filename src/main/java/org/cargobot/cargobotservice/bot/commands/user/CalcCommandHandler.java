@@ -14,7 +14,6 @@ import org.cargobot.cargobotservice.service.TariffService;
 import org.cargobot.cargobotservice.service.TelegramBotService;
 import org.cargobot.cargobotservice.service.session.UserSessionService;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
@@ -28,7 +27,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class CalcCommandHandler implements CommandHandler {
-    private final TelegramBotService bot;
+    private final TelegramBotService botService;
     private final UserSessionService userSessionService;
     private final CalculationService calculationService;
     private final TariffService tariffService;
@@ -37,21 +36,21 @@ public class CalcCommandHandler implements CommandHandler {
     public boolean handleCommand(Update update) {
         if (!update.hasMessage()) return false;
 
-        Message message = update.getMessage();
+//        Message message = update.getMessage();
 
         // 1. Команда /calc
-        if (message.hasText() && message.getText().equalsIgnoreCase("/calc")
-                || message.hasText() && message.getText().equalsIgnoreCase(BOT_VERSION)) {
+        if (update.getMessage().hasText() && update.getMessage().getText().equalsIgnoreCase("/calc")
+                || update.getMessage().hasText() && update.getMessage().getText().equalsIgnoreCase(BOT_VERSION)) {
             return true;
         }
 
         // 2. Сообщение из процесса калькуляции
-        if (message.hasText() && isInCalculation(update) && !message.getText().startsWith("/")) {
+        if (update.getMessage().hasText() && isInCalculation(update) && !update.getMessage().getText().startsWith("/")) {
             return true;
         }
 
         // 3. Пришли данные из WebApp
-        if (message.getWebAppData() != null) {
+        if (update.getMessage().getWebAppData() != null) {
             return true;
         }
 
@@ -61,25 +60,25 @@ public class CalcCommandHandler implements CommandHandler {
     @Override
     public void handle(Update update) {
         log.info("Calc command handled");
-        Message message = update.getMessage();
-        String text = message.getText();
-        System.out.println(message.getChatId());
-        Long chatId = message.getChatId();
+        //Message message = update.getMessage();
+        String text = update.getMessage().getText();
+        System.out.println(update.getMessage().getChatId());
+        Long chatId = update.getMessage().getChatId();
 
-        if (message.getWebAppData() != null) {
-            webFormat(message, chatId);
+        if (update.getMessage().getWebAppData() != null) {
+            webFormat(update, chatId);
             return;
         }
 
-        if (message.hasText() && text.equalsIgnoreCase("/calc")) {
+        if (update.getMessage().hasText() && text.equalsIgnoreCase("/calc")) {
             sendWebAppButton(chatId);
             return;
         }
 
         UserSession userSession = userSessionService.getUserSession(chatId);
-        if (text.equalsIgnoreCase(BOT_VERSION)){
+        if (text.equalsIgnoreCase(BOT_VERSION)) {
             userSession.setState(CalcUserState.AWAIT_LENGTH);
-            bot.removeReplyKeyboard(chatId, " \uD83D\uDCCF  Введите длину коробки (см): ");
+            botService.removeReplyKeyboard(chatId, " \uD83D\uDCCF  Введите длину коробки (см): ");
             return;
         }
 
@@ -94,9 +93,10 @@ public class CalcCommandHandler implements CommandHandler {
     }
 
     private ReplyKeyboardMarkup createYesNoKeyboard() {
-        ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
-        keyboard.setResizeKeyboard(true);
-        keyboard.setOneTimeKeyboard(true);
+        ReplyKeyboardMarkup keyboard = ReplyKeyboardMarkup.builder()
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .build();
 
         List<KeyboardRow> rows = new ArrayList<>();
         KeyboardRow row = new KeyboardRow();
@@ -126,26 +126,26 @@ public class CalcCommandHandler implements CommandHandler {
                 .resizeKeyboard(true)
                 .build();
 
-        bot.sendMessageWithKeyboard(chatId,
+        botService.sendMessageWithKeyboard(chatId,
                 "Нажмите кнопку ниже, чтобы открыть форму:",
                 markup);
     }
 
-    private void webFormat(Message message, Long chatId) {
-        String webAppData = message.getWebAppData().getData();
+    private void webFormat(Update update, Long chatId) {
+        String webAppData = update.getMessage().getWebAppData().getData();
         log.info("Получены данные из WebApp: {}", webAppData);
-        bot.removeReplyKeyboard(message.getChatId(), "*✅ Данные успешно получены!*\n```\n" + webAppData + "\n```");
+        botService.removeReplyKeyboard(update.getMessage().getChatId(), "*✅ Данные успешно получены!*\n```\n" + webAppData + "\n```");
         try {
             ObjectMapper mapper = new ObjectMapper();
             CargoCalculationRequest data = mapper.readValue(webAppData, CargoCalculationRequest.class);
 
             // Теперь вы можете работать с данными
             log.info("Parsed data: {}", data);
-            bot.sendText(chatId, "Стоимость доставки: ");
+            botService.sendText(chatId, "Стоимость доставки: ");
 
         } catch (JsonProcessingException e) {
             log.error("Ошибка парсинга JSON", e);
-            bot.sendText(chatId, "❌ Ошибка обработки данных");
+            botService.sendText(chatId, "❌ Ошибка обработки данных");
         }
     }
 
@@ -156,36 +156,36 @@ public class CalcCommandHandler implements CommandHandler {
                 try {
                     userSession.setLength(Integer.parseInt(text));
                     userSession.setState(CalcUserState.AWAIT_WIDTH);
-                    bot.sendText(chatId, " \uD83D\uDCCF  Введите ширину коробки (см):");
+                    botService.sendText(chatId, " \uD83D\uDCCF  Введите ширину коробки (см):");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    botService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_WIDTH -> {
                 try {
                     userSession.setWidth(Integer.parseInt(text));
                     userSession.setState(CalcUserState.AWAIT_HEIGHT);
-                    bot.sendText(chatId, " \uD83D\uDCCF  Введите высоту коробки (см):");
+                    botService.sendText(chatId, " \uD83D\uDCCF  Введите высоту коробки (см):");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    botService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_HEIGHT -> {
                 try {
                     userSession.setHeight(Integer.parseInt(text));
                     userSession.setState(CalcUserState.AWAIT_WEIGHT);
-                    bot.sendText(chatId, " \uD83C\uDFCB\uFE0F  Введите вес одной коробки (кг):");
+                    botService.sendText(chatId, " \uD83C\uDFCB\uFE0F  Введите вес одной коробки (кг):");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    botService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_WEIGHT -> {
                 try {
                     userSession.setWeight(Double.parseDouble(text));
                     userSession.setState(CalcUserState.AWAIT_BOXES);
-                    bot.sendText(chatId, " \uD83D\uDCE6  Введите количество коробок:");
+                    botService.sendText(chatId, " \uD83D\uDCE6  Введите количество коробок:");
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    botService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case AWAIT_BOXES -> {
@@ -193,9 +193,9 @@ public class CalcCommandHandler implements CommandHandler {
                     userSession.setQuantity(Integer.parseInt(text));
                     userSession.setState(CalcUserState.CHECK_FRAGILITY);
                     ReplyKeyboardMarkup keyboard = createYesNoKeyboard();
-                    bot.sendMessageWithKeyboard(chatId, "🍸 Хрупкий товар:", keyboard);
+                    botService.sendMessageWithKeyboard(chatId, "🍸 Хрупкий товар:", keyboard);
                 } catch (NumberFormatException e) {
-                    bot.sendText(chatId, "⛔ Введите число!");
+                    botService.sendText(chatId, "⛔ Введите число!");
                 }
             }
             case CHECK_FRAGILITY -> {
@@ -210,9 +210,9 @@ public class CalcCommandHandler implements CommandHandler {
                     }
                     ReplyKeyboardMarkup keyboard = createYesNoKeyboard();
                     userSession.setState(CalcUserState.CHECK_URGENCY);
-                    bot.sendMessageWithKeyboard(chatId, " \uD83C\uDFCE Срочно:", keyboard);
+                    botService.sendMessageWithKeyboard(chatId, " \uD83C\uDFCE Срочно:", keyboard);
                 } catch (RuntimeException e) {
-                    bot.sendText(chatId, """
+                    botService.sendText(chatId, """
                             ⛔ Ответьте "ДА" или "НЕТ"\s""");
                 }
             }
@@ -247,15 +247,15 @@ public class CalcCommandHandler implements CommandHandler {
                             *Примерная стоимость: %.2f USD* 💵
 
                             """, result.getTotalVolume(), result.getTotalWeight(), result.getCost());
-                    bot.removeReplyKeyboard(chatId, resultMessage);
+                    botService.removeReplyKeyboard(chatId, resultMessage);
                     log.info("Calculation result: {}", resultMessage);
                     userSessionService.clearUserSession(chatId);
                 } catch (RuntimeException e) {
-                    bot.sendText(chatId, """
+                    botService.sendText(chatId, """
                             ⛔ Ответьте "ДА" или "НЕТ"\s""");
                 }
             }
-            default -> bot.sendText(chatId, "Введите /calc для начала расчёта.");
+            default -> botService.sendText(chatId, "Введите /calc для начала расчёта.");
         }
     }
 
