@@ -1,17 +1,16 @@
-package org.cargobot.cargobotservice.entity;
+package org.cargobot.cargobotservice.dto.session;
 
-import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cargobot.cargobotservice.entity.states.UserState;
+import org.cargobot.cargobotservice.entity.BaseEntity;
+import org.cargobot.cargobotservice.entity.states.CalcUserState;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 public class UserSession extends BaseEntity {
     private Long chatId;
     private Integer length;
@@ -21,5 +20,5 @@ public class UserSession extends BaseEntity {
     private Integer quantity;
     private boolean fragile;
     private boolean urgency;
-    private UserState state;
+    private CalcUserState state;
 }

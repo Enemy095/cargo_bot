@@ -1,7 +1,13 @@
 package org.cargobot.cargobotservice;
 
-public class Main {
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CargoBotApplication {
+
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        SpringApplication.run(CargoBotApplication.class);
     }
 }

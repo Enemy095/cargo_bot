@@ -1,6 +1,6 @@
 package org.cargobot.cargobotservice.entity.states;
 
-public enum CalcState {
+public enum CalcUserState {
     NONE,
     AWAIT_LENGTH,
     AWAIT_WIDTH,

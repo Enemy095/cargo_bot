@@ -1,17 +1,27 @@
 package org.cargobot.cargobotservice.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.util.UUID;
+
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "tariff")
 @Entity
-public class TariffConfig {
-    @Id
-    @GeneratedValue
-    private Long id;
+public class Tariff extends BaseEntity{
 
-    @Column(nullable = false)
-    private double kgRate;
-    private double cubicConversion;
+    @Column(unique = true, nullable = false)
+    private String name;
+    private Double kgRate;
+    private Double minPrice;
+    private Double cubicConversion;
+    private Double fragility;
+    private Double urgency;
+
+    @Builder.Default
+    private boolean active = true;
 }

@@ -1,4 +1,4 @@
-package org.cargobot.cargobotservice.service;
+package org.cargobot.cargobotservice.service.session;
 
 import lombok.RequiredArgsConstructor;
 import org.cargobot.cargobotservice.entity.states.CalcUserState;

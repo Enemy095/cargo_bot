@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: user
+    password: password
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 5
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        cache.use_second_level_cache: false
+        format_sql: true
+        jdbc.lob.non_contextual_creation: true
+        generate_statistics: true
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+        jdbc:
+          batch_size: 10
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    drop-first: true
+    contexts: dev
+
+  main:
+    allow-circular-references=true: true
+
+
+
+telegram:
+  bot:
+    username: cargo_001_bot
+    token: 7768074385:AAFdJu1Yw4bQFPCv8bVuCclIFOynXTX09jA
+
+
+
+factor:
+  volumetric_weight: 5000
+
+admin:
+  id: 6588943301
+
+server:
+  port: 8084

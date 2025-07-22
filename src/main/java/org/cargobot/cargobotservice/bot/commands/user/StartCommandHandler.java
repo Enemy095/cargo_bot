@@ -1,8 +1,11 @@
-package org.cargobot.cargobotservice.bot.commands;
+package org.cargobot.cargobotservice.bot.commands.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cargobot.cargobotservice.bot.TelegramBotService;
+import org.cargobot.cargobotservice.entity.User;
+import org.cargobot.cargobotservice.service.TelegramBotService;
+import org.cargobot.cargobotservice.bot.commands.CommandHandler;
+import org.cargobot.cargobotservice.service.UserService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -13,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class StartCommandHandler implements CommandHandler {
 
     private final TelegramBotService bot;
+    private final UserService userService;
 
     @Override
     public boolean handleCommand(Update update) {
@@ -27,10 +31,13 @@ public class StartCommandHandler implements CommandHandler {
         String text = "Добро пожаловать в Cargo Delivery Bot!  \uD83D\uDE9A\n" +
                 "Используйте /calc для расчёта стоимости доставки.\n";
 
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId.toString())
-                .text(text)
-                .build();
+
         bot.sendText(chatId, text);
+
+        User user = new User(chatId.toString());
+        userService.createUser(user);
+
+
+
     }
 }

@@ -1,6 +1,7 @@
-package org.cargobot.cargobotservice.bot;
+package org.cargobot.cargobotservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.cargobot.cargobotservice.bot.CargoBot;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 

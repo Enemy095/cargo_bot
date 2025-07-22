@@ -1,4 +1,4 @@
-package org.cargobot.cargobotservice.service;
+package org.cargobot.cargobotservice.service.session;
 
 
 import lombok.RequiredArgsConstructor;
@@ -20,15 +20,6 @@ public class TariffSessionService {
             TariffSession session = new TariffSession();
             session.setChatId(chatId);
             session.setState(AdminTariffState.NONE);
-            return session;
-        });
-    }
-
-    public TariffSession getTariffSessionDelete(Long chatId) {
-        return tariffSessions.computeIfAbsent(chatId, id -> {
-            TariffSession session = new TariffSession();
-            session.setChatId(chatId);
-            session.setDeleteState(DeleteTariffState.NONE);
             return session;
         });
     }

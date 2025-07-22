@@ -1,8 +1,8 @@
-package org.cargobot.cargobotservice.bot.commands;
+package org.cargobot.cargobotservice.bot.commands.admin;
 
 import lombok.RequiredArgsConstructor;
 import org.cargobot.cargobotservice.bot.CargoBot;
-import org.cargobot.cargobotservice.entity.Tariff;
+import org.cargobot.cargobotservice.bot.commands.CommandHandler;
 import org.cargobot.cargobotservice.service.TariffService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,12 +30,12 @@ public class AdminCommandHandler implements CommandHandler {
         Long chatId = update.getMessage().getChatId();
         String text = update.getMessage().getText();
         System.out.println(chatId);
-        if(!chatId.equals(adminId)) {
+        if (!chatId.equals(adminId)) {
             bot.sendText(chatId, "⛔ Неизвестная команда. Используйте /calc.");
             return;
         }
 
-        if(text.equals("/admin")) {
+        if (text.equals("/admin")) {
             String message = getFirstMsg();
             bot.sendText(chatId, message);
             return;
@@ -45,20 +45,21 @@ public class AdminCommandHandler implements CommandHandler {
     }
 
     private String getFirstMsg() {
-        Tariff tariff = tariffService.getCurrentTariff();
         return String.format("""
                 💼 Админ-панель:
-                
-                
-                           Текущая стоимость за кубометр: %.2f USD
-                           Текущая стоимость за кг: %.2f USD
-                         \s
-                           /current показать текущий тарий
-                           /all     показать все тарифы
-                           /create  создать тариф
-                           /delete  удалить тариф
-                           /change  изменить тариф
-                           ""\"""",tariff.getPricePerCubicMeter(), tariff.getKgRate());
+
+                 📋 /current показать текущий тарий
+                 
+                 📚 /tariffs показать все тарифы
+                 
+                 ✨ /create создать тариф
+                 
+                 🗑️ /delete удалить тариф
+                 
+                 🔄 /change изменить тариф
+                 
+                 ✉️ /message отправить сообщение пользователям
+                  """);
     }
 }
 
