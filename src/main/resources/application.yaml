@@ -1,13 +1,14 @@
 spring:
+  config:
+    import: "optional:dotenv:file:./.env"
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/order_db
-    username: user
-    password: password
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
     hikari:
       connection-timeout: 30000
       maximum-pool-size: 5
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -39,15 +40,15 @@ spring:
 telegram:
   bot:
     username: cargo_001_bot
-    token: 7768074385:AAFdJu1Yw4bQFPCv8bVuCclIFOynXTX09jA
+    token: ${BOT_TOKEN}
 
 
 
 factor:
-  volumetric_weight: 5000
+  volumetric_weight: ${FACTOR_VOLUMETRIC_WEIGHT}
 
 admin:
-  id: 6588943301
+  id: ${ADMIN_ID}
 
 server:
   port: 8084

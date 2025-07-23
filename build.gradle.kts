@@ -61,3 +61,10 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+tasks.bootJar {
+//    archiveFileName.set("cargo-bot.jar")
+    archiveBaseName.set("cargo-bot")
+    archiveVersion.set("1.0.0")
+    // archiveClassifier.set("")
+}
